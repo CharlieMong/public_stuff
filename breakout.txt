@@ -1,0 +1,504 @@
+
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-07-18T10:11:09+01:00
+
+====== Citrix-workstation Breakout ======
+Created Tuesday 18 July 2017
+
+Acquiring a dialog box is often the first port of call in breakout testing, and is usually an effective method of gauging if any obvious attempts have been made to harden the system.
+Even when you’re presented with only a lowly instance of Notepad, there can be options available.
+It is not uncommon for the most innocuous and simplistic of applications to lead to the compromise of a client’s Domain and entire estate. This is often referred to as the “snowball” effect, where one small issue leads to another, gradually increasing in severity and risk.
+
+Many of the standard windows applications that are available typically offer some way of opening a dialog box:
+
+Naturally, various methods exist that can be used to bring up a dialog, however simple examples are:
+“Save as” / “Open as” option
+“Print” feature – selecting “print to file” option (XPS/PDF/etc)
+
+Abusing Dialog Boxes
+
+Once a dialog is open, this can be used as a pivot point to start exploring the system or escalating privileges. This is often only limited to your creativity, however we have a few ideas:
+Creating new files +
+Batch files – Right click > New > Text File > rename to .BAT (or .CMD) > edit > open
+Shortcuts – Right click > New > Shortcut > “%WINDIR%\system32”
+Open a new Windows Explorer instance +
+Right click any folder > select “Open in new window”
+Exploring Context Menus +
+Right click any file/folder and explore context menus
+Clicking “Properties”, especially on shortcuts, can yield further access via “Open File Location”
+Input Boxes +
+Many input boxes accept file paths; try all inputs with UNC paths such as “//attacker–pc/” or “//127.0.0.1/c$” or “C:\”
+Bypass file restrictions +
+enter *.* or *.exe or similar in “File name” box
+Help Menus
+
+Help menus come in numerous formats, but we’ll focus on application specific help menus and the generic “Windows Help and Support” menu that can be accessed via the Windows+F1 shortcut.
+Help menus often have links and shortcuts to various functionality, as can be seen below where a user can simply click a link to open Command Prompt:
+
+Other ideas:
+Right click on any whitespace and select “view source” which will open an instance of notepad
+The Print icon at the top can be used to bring up a print dialog
+A help menu can be accessed from the Language Bar. This is especially common on systems that need to cater for multiple languages i.e. at airports
+Most applications with a help menu will offer a hyperlink to the vendor webpage (e.g. www.vendor.com). Clicking on the link can be a way of bringing up an Internet Explorer window, and pivoting from there.
+Environmental Variables / Bypassing Path Restrictions
+
+In some systems where minimal hardening has taken place, it may not be possible to browse directly to an obvious directory such as C:\Windows\System32. There are however various symbolic links that one can use to potentially bypass this restriction.
+%ALLUSERSPROFILE%
+%APPDATA%
+%CommonProgramFiles%
+%COMMONPROGRAMFILES(x86)%
+%COMPUTERNAME%
+%COMSPEC%
+%HOMEDRIVE%
+%HOMEPATH%
+%LOCALAPPDATA%
+%LOGONSERVER%
+%PATH%
+%PATHEXT%
+%ProgramData%
+%ProgramFiles%
+%ProgramFiles(x86)%
+%PROMPT%
+%PSModulePath%
+%Public%
+%SYSTEMDRIVE%
+%SYSTEMROOT%
+%TEMP%
+%TMP%
+%USERDOMAIN%
+%USERNAME%
+%USERPROFILE%
+%WINDIR%
+shell:Administrative Tools
+shell:DocumentsLibrary
+shell:Librariesshell:UserProfiles
+shell:Personal
+shell:SearchHomeFolder
+shell:System shell:NetworkPlacesFolder
+shell:SendTo
+shell:UserProfiles
+shell:Common Administrative Tools
+shell:MyComputerFolder
+shell:InternetFolder
+File protocol handlers can also be a useful avenue for opening up applications that would otherwise be unavailable:
+about:
+data:
+ftp:
+mailto:
+news:
+res:
+telnet:
+view-source:
+UNC Paths are commonly accepted, even on systems with quite substantial hardening in place:
+\\127.0.0.1\c$\Windows\System32
+Gaining a Command Shell
+
+Gaining access to a Command Shell of some description can be an early win in breakout testing and enables a great amount of control over the Operating System, including the potential to enumerate a lot of information that can help us escalate our privileges further. Some environments have been subjected to very limited hardening and even offer the standard shortcut to cmd.exe within the Start Menu. Naturally it is worth checking this as a first port of call:
+
+Typically, we have a few different executable options to gain a shell on a system:
+Cmd.exe
+COMMAND.COM
+Powershell.exe
+Third party admin / shell tool
+“Run”:
+Quite possibly the easiest method available. Can be accessed via the Start Menu, or with the shortcut Windows+R:
+
+Access through file browser: 
+A simple yet effective attack. By browsing to the folder containing the binary (i.e. “C:\windows\system32\”), we can simply right click and “open” it:
+
+Drag-and-drop: 
+By dragging and dropping any file, even those with invalid extensions (i.e. *.txt) onto the cmd.exe file will cause a Command Prompt window to be launched
+
+Hyperlink / shortcut: 
+Using the file handler, a link can be created to the binary. This link can be launched from numerous places, including dialog boxes and even within Microsoft Office applications by using the CTRL+Click option. file:///c:/Windows/System32/cmd.exe
+
+Task Manager: 
+The Windows Task Manager can be useful to us for a number of reasons. Additionally, it can be used to run new processes. Task Manager (taskmgr) can be accessed in a number of ways, including from the Start Menu, the CTRL+ALT+DELETE splash page in newer versions of Windows and via the direct shortcut CTRL+SHIFT+ESCAPE.
+
+Task Scheduler: 
+An interesting weakness, where some systems prevent access to cmd.exe, however it can still be scheduled to run via Task Scheduler. This can be done either via the command line scheduler (at.exe) or the GUI (taskschd.msc). A basic task can be created to run cmd.exe at a specific time (i.e. 1 minute in the future) or upon certain events such as when a user logs on.
+COMMAND.COM
+This is a 16-bit binary included in Windows for legacy purposes. Even when cmd.exe is disabled, this can often be accessible. Unfortunately, COMMAND.COM is no longer included within 64-bit versions of Windows.
+Powershell.exe
+A similar experience to cmd.exe, however PowerShell has some several advanced features over regular cmd.exe such as the ability to use and call features and assemblies in .NET.
+MSPAINT.exe
+An unusual, yet effective method of gaining a shell by creating a shortcut to cmd.exe by drawing certain colours in Microsoft Paint. Due to the encoding algorithm used to write BMP files, it is possible to dictate ASCII data written into a file by carefully selecting certain RGB colours.
+
+1. Open MSPaint.exe and set the canvas size to: Width=6 and Height=1 pixels
+2. Zoom in to make the following tasks easier
+3. Using the colour picker, set pixels values to (from left to right): +
+1st: R: 10, G: 0, B: 0
+2nd: R: 13, G: 10, B: 13
+3rd: R: 100, G: 109, B: 99
+4th: R: 120, G: 101, B: 46
+5th: R: 0, G: 0, B: 101
+6th: R: 0, G: 0, B: 0
+4. Save it as 24-bit Bitmap (*.bmp;*.dib)
+5. Change its extension from bmp to bat and run.
+Bypassing interactive console restrictions: 
+When an interactive Command Prompt is disabled, it’s often possible to run cmd.exe with the /K or /C arguments. Simply running “cmd.exe /K pause” can bypass restrictions and load an interactive shell:
+
+Alternatively, commands can be passed to cmd.exe using the /C argument which runs in a non-interactive session. For example, “cmd.exe /C tasklist > c:\tasks.txt”.
+FTP: 
+Whilst not yielding full command shell access, the FTP client is usually available and can offer a method of browsing the file system via the “!dir” command if all other avenues are blocked. It may also serve as an avenue for data transfer, i.e. downloading 3rd party tools.
+
+Other useful FTP commands:
+!whoami
+!date
+!ping 127.0.0.1
+Bypassing Write Restrictions
+
+This is a useful time to mention ways that can be used to bypass write restrictions on the environment you’re testing. This will help to find an area to upload third party tools and write any data to from enumeration processes.
+Best practice dictates that a user should have the lowest amount of write privileges without being detrimental to their work. In practice, this can mean very limited write permissions on the hosts local file system.
+Temporary folders are a good first port of call and nearly always allow write access. Enumerate the default temp location by finding the value of the %TEMP% variable, e.g. “echo %TEMP%”. Folder names are usually along the lines of:
+C:\Users\USER\AppData\Local\Temp
+C:\temp\
+C:\tmp\
+Writing to the %USERPROFILE% directory can be another tactic, however this may link to a network shared folder.
+Accesschk.exe
+This tool is available within the Sysinternals Suite and offers similar functionality to the built in “cacls” / “icacls”.
+We can use this to find directories on filesystems that allow us write access:
+accesschk.exe -uwdqs Users c:\
+accesschk.exe -uwdqs “Authenticated Users” c:\
+Bypassing Executable Restrictions
+
+Some systems have rudimentary whitelists in place that only allow applications to run that have a specific filename or file extension. This can sometimes be trivial to bypass, by renaming malware.exe to an allowed value such as mspaint.exe.
+Other poor configurations allow any application to be run as long as directory meets whitelist criteria. If the system you are testing allows Microsoft Word to run, try copying your file to the same directory as WINWORD.EXE.
+Internet Explorer
+
+Many web applications are deployed using technology such as Citrix / Terminal Service / Kiosk platforms. Of course, for functionality, this means that a Web Browser will need to be available to access the application. 9 times out of 10, this will be good old Internet Explorer (IE).
+There are a few ways we can use IE to our advantage:
+Dialog Boxes and Menus:
+Address bar – this can be used with many of the paths and environment variables mentioned earlier. Examples such as “file://c:\windows\system32\cmd.exe” often work.
+Menus – Help, print and search menus all offer links and options that may point outside of the browser and open up areas of the operating system such as a new instance of Windows Explorer.
+Right click – the context menu can offer a wealth of options such as “view source” (notepad) and “save picture as”
+Favourites menu – Open favourites tab (ALT+C), Drag folder onto browser window, any will work such as “MSN Websites”
+Home Page: 
+A quick and dirty method of accessing a custom file of your choice is to set your homepage to an arbitrary value such as “cmd.exe”.
+F12 Developer Tools: 
+The developer tools in Internet Explorer can be accessed via the F12 shortcut key. By selecting the “File” menu and the “Customize Internet Explorer view source” option it is possible to set a custom application of the user’s choice.
+
+For our purposes, setting this to something like “C:\windows\system32\cmd.exe” could be useful. This has now effectively turned Command Prompt into your default HTML source viewer for IE. Finally, right click on a page and select “View Source” to kick-start the process.
+Certificate Import: 
+Load Internet Explorer settings and navigate to the “Content” tab, now select the “Certificates” button. Click on the “Import…” option which will bring up the following wizard:
+
+The next stage of the wizard will ask for a certificate path, which will open up a Windows Explorer / file browser type dialog. This can be used with methods in the “Abusing Dialog Boxes” section to break out / escalate privileges.
+Browser Add-Ons / Applets / Dynamic Content: 
+By default, Internet Explorer is built to be user friendly and provide a content rich experience. This can be leveraged to our advantage in various forms to ultimately interact with the Operating System through these methods. Active-X add-ons, Flash applications, Java applets and similar techniques can all provide this level of access given that Internet Explorer is not locked down.
+Browser Based Exploits: 
+Providing that the system is unpatched, numerous client-side exploits exist for different versions of Internet Explorer which can be leveraged by visiting a crafted link. This can be done with Metasploit.
+It may also be possible to trick another user of the system into following a crafted link, meaning any malicious code would be executed as their user – this could be particularly useful if the user holds a high privilege account.
+Microsoft Office
+
+Like Internet Explorer, the Office Suite is generally available on the vast majority of environments to provide functionality to users. Again, this offers us numerous avenues for exploitation:
+VBA (Visual Basic for Applications) and Macros: 
+It is trivial to use msfencode/msfpayload to generate VBA code that will create a reverse shell / Meterpreter shell on the host. This method is seldom stopped by AV either. Although Meterpreter shells are useful, it will be running under the context of the user account you already have. Meterpreter may however be useful for escalating privileges, depending on how well the system has been secured.
+
+Developer Tools: 
+The Developer tools are available in all Office applications, but are not enabled by default. The method for enabling Developer tools has changed across different versions, however in Office 2010 onwards the option exists under the “Customise Ribbon” tab in the application options. Once enabled, various add-ins provide functionality that is useful to us:
+
+This includes a plethora of Active-X controls that can be used to interface with the Operating System. If Internet Explorer is disabled, but Excel isn’t, why not create your own Web Browser?
+
+Launch commands via VBA: 
+A simple 3-liner can be used to launch external applications via a macro / VBA code:
+Sub OpenCMD()
+Shell “CMD /K C:\windows\system32\cmd.exe”, vbNormalFocus
+End Sub
+MS SQL Server (Local and remote): 
+A long shot, but if any form of access is provided to Microsoft SQL servers, especially older ones, it is worth checking to see if the XP_CMDSHELL stored procedure is enabled. If poor access / user controls are in place, it may be possible to execute commands on the affected server and remotely compromise it.
+Dialog Boxes and shortcuts: 
+Another avenue for dialog boxes. Simple shortcuts can be embedded within a standard document, i.e. Word, to paths on the filesystem (i.e. file://).
+Modifying ICA Files
+
+Some configurations of Citrix rely on .ICA (Independent Computing Architecture) files to store the configuration for a connection. This configuration specifies obvious parameters such as the server address and port, however there are some more interesting parameters we can fiddle with to our advantage.
+A sample ICA file might look like the following:
+[Encoding]
+InputEncoding=ISO8859_1[WFClient]
+Version=2
+username=username
+clearpassword=password
+[ApplicationServers]
+ApplicationName=
+[ApplicationName]
+Address=IPAddress
+InitialProgram=notepad.exe
+TWIMode=On
+TransportDriver=TCP/IP
+WinStationDriver=ICA 3.0
+BrowserProtocol=HTTPonTCP
+As can be seen above, the “InitialProgram” parameter dictates that an instance of Notepad should be loaded upon connection. With systems that have poor hardening in place, it can be as simple as changing the parameter to something like “cmd.exe” to bring up a Command Prompt or “Explorer.exe”:
+InitialProgram=cmd.exe
+Some applications may require further authentication and will not work with the credentials you have. By fuzzing the “InitialProgram” parameter, we can potentially enumerate valid executables.
+Nmap (NSE plugin citrix-enum-apps) and Metasploit (auxiliary/gather/citrix_published_applications) can be used to enumerate published application, as well as a number of other publicly available scripts on the internet.
+Default / Weak Credentials
+
+In any environment, there is obvious value in looking for default user/password combinations or accounts that are using a weak password such as, well, “password”!
+Where possible, attempt to enumerate a list of valid usernames before your attack. Look for verbose error messages that disclose whether an account actually exists, e.g. “This username does not exist” vs “Incorrect Password”. “Forgotten password” functionality can also indicate whether a user exists or not.
+If you already have authentication and can access a shell, try commands such as “net users” or “net users /domain”.
+Obvious usernames, such as the below, are always worth exploring. It is not uncommon for usernames to be reused as passwords:
+test
+citrixtest
+administrator
+admin
+guest
+backup
+default
+File Transfer – Getting data to and from your target
+
+Without going into too much detail, we’re going to briefly outline numerous methods that you can use:
+FTP
+HTTP servers (WAMP / LAMP / publicly available tools on the internet / etc)
+SMB to client \\hacker\tools
+SMB to server \\server\c$
+DNS tunnelling
+Email – personal / corporate
+Clipboard
+Streaming data via user-input
+Device pass-through +
+RS323 / serial
+Firewire
+Some of these methods involve setting up a server on your attack infrastructure, however this is trivial and Kali Linux has many of these services built in ready to be activated.
+DNS Tunnelling: 
+An interesting concept that relies on the fact that, even in highly restrictive environments, DNS queries may be allowed through to the internet. We have a separate blog post with a how-to at:
+http://www.pentestpartners.com/blog/data-exfiltration-dns-tunnelling-using-iodine/
+Email: 
+If a web browser is available, it may be possible to email data to and from the host using personal email accounts such as Gmail. Depending on firewall rulesets and network filtering, connections via protocols such as POP3 / IMAP / SMTP may be worth exploring.
+Full Desktop Environments may have access to a corporate email system, which could be used in a similar fashion. However it is worth noting that many corporate email solutions, especially for larger firms, will be using some form of content filtering on attachments. This can often be bypassed by including any data within an encrypted archive, i.e. ZIP.
+Clipboard: 
+Data can be sent via clipboard for use on the host machine. Binary files can be base64 encoded and potentially reconstructed on the remote system for execution. Alternatively, assembly language can be copied via clipboard to the remote system and executed using debug.exe.
+Streaming data via user-input: 
+By exploiting the standard method of user input (keyboard/mouse), it is possible to create an automated script that mimics user-input to send arbitrary data. Data can be slowly streamed and reconstructed on the other side.
+Reprogrammable Human Interface Devices (HIDs) such as the well-known Rubber Ducky can be used for this type of attack (http://hak5.org/episodes/episode-709). One of my colleagues, David Lodge, has also written a guide on this topic, on our blog:
+http://www.pentestpartners.com/blog/transferring-data-the-low-tech-way/
+Device pass-through: 
+Depending on the environment in use, it may be possible to “pass-through” local hardware devices such as a USB Storage Device to the remote host. Certain client tools such as Microsoft Remote Desktop Protocol and Citrix Receiver will actually automatically pass through devices automatically; however this can be manually changed if necessary.
+For Microsoft Remote Desktop Protocol, start the Terminal Services client (mstsc.exe) and select the “Local Resources” tab. Press the “More…” button at the bottom of the window. From here, it is possible to select what local devices and drives you would like to pass through to the remote host:
+
+This can be performed in a similar fashion for Citrix Receiver, before a connection is made, by going into Desktop Viewer Preferences and selecting the “Devices” tab:
+
+Alternatively this can be done using the hotbar once a connection is made:
+
+Device pass-through (RS232 / Serial): 
+Allowing devices such as serial ports to be connected via the device pass-through feature could allow an easy method of transferring data between the host and the server. The serial port can be emulated locally on the attacker’s machine and used to stream data over to the server. Data can be received on the server side using a terminal application such as Windows HyperTerminal or a custom built receiver built in assembly using debug.exe if available.
+Device pass-through (Firewire): 
+Firewire is notorious in the security community for being potentially vulnerable to physical memory attacks. This exploits a “feature” within the Firewire specification that allows Direct Memory Access (DMA) to external devices connected via Firewire. Theoretically, it may be possible to pass-through an emulated Firewire device that would allow DMA, such as an Apple iPod. It may then be possible to have full read/write access of the remote memory. This would carry serious implications as the memory most likely will store all manner of sensitive data, including user credentials, encryption keys, etc.
+Useful System / Administrative Tools
+
+Many of the default tools built into Windows for admin purposes can be overlooked when hardening takes place and as a result can be available to us. The vast majority of these can be ran using methods covered earlier in the article:
+MMC.exe – Microsoft Management Console, allows a large degree of control over the system using “snap-ins”
+Mstsc.exe – Microsoft Terminal Services, can allow remote desktop connection to another host
+Regedit.exe – Registry control
+Taskmgr.exe – Task Manager
+Control.exe – Control Panel shortcut
+Rundll32.exe – An alternative method of accessing areas of the OS that may be hidden via native API calls
+Dxdiag.exe – DirectX diagnostic tool, useful for enumerating system information
+Msconfig.exe – System configuration, shows verbose system information and has links to system tools
+Eventvwr.exe – Local events viewer
+Systeminfo.exe – Command line system info collector
+Msinfo32.exe – System Information
+Osk.exe – On Screen Keyboard, can be useful in Kiosk style environments where no keyboard is available
+At.exe – Task Scheduler
+Taskschd.msc – Task Scheduler GUI
+Explorer.exe – Brings up a new instance of Windows Explorer
+WMIC.exe
+Qwinsta.exe – Displays information about RDP sessions
+Tasklist.exe / qprocess.exe – List process information
+It is often worth hunting for other local Microsoft and 3rd Party executables that you have access to, e.g:
+“dir /s %WINDIR% *.exe”
+Rundll32: 
+There is a vast array of commands that can be run via Rundll32, we have included a few examples that could come in useful:
+Stored Usernames and Passwords:
+RunDll32.exe keymgr.dll,KRShowKeyMgrControl Panel:
+RunDll32.exe shell32.dll,Control_RunDLL
+Date and Time Properties:
+RunDll32.exe shell32.dll,Control_RunDLL timedate.cpl
+Device Manager:
+RunDll32.exe devmgr.dll DeviceManager_Execute
+Folder Options – General:
+RunDll32.exe shell32.dll,Options_RunDLL 0
+Forgotten Password Wizard:
+RunDll32.exe keymgr.dll,PRShowSaveWizardExW
+Keyboard Properties:
+RunDll32.exe shell32.dll,Control_RunDLL main.cpl @1
+Lock Screen:
+RunDll32.exe user32.dll,LockWorkStation
+Network Connections:
+RunDll32.exe shell32.dll,Control_RunDLL ncpa.cpl
+Open With Dialog Box:
+Rundll32 Shell32.dll,OpenAs_RunDLL FILE.ext
+Printer User Interface:
+Rundll32 Printui.dll,PrintUIEntry /?
+System Properties Box:
+Rundll32 Shell32.dll,Control_RunDLL Sysdm.cpl,,3
+Windows Firewall:
+RunDll32.exe shell32.dll,Control_RunDLL firewall.cpl
+Windows About:
+RunDll32.exe SHELL32.DLL,ShellAboutW
+WMIC.exe: 
+WMIC (Windows Management Instrumentation Command-Line) is a powerful command line tool that can be very useful for information gathering.
+
+WMIC is a very broad tool and we will only cover it briefly with a few examples:
+Local shares:
+wmic share list /format:tableLocal Users:
+wmic useraccount list full
+Local Users – Output to HTML file:
+wmic /output:c:\users.html useraccount list full /format:hform
+Processes:
+wmic process list full
+Services:
+wmic service list full
+Software:
+wmic os lsit full
+Installed patches / service packs / hotfixes:
+wmic qfe
+Shortcuts
+
+As with most Operating Systems, there is a shortcut for pretty much every commonly used function in Windows. Some of these can be very useful when the hardening that has taken place is superficial, e.g. only removing Start Menu links.
+Standard Operating System Shortcuts:
+Standard operating system shortcuts can be created throughout various areas of Windows, it’s worth bringing up the context menu in areas such as the Desktop or Explorer and then linking to one of the resources mentioned in this article, i.e. %WINDIR%\system32\cmd.exe
+
+
+Accessibility shortcuts: 
+Many of these shortcuts exist to offer accessibility features such as “Sticky Keys” and “Mouse Keys”. Pressing the correct combination will bring up a pop-up dialog, which can be used to gain access to the Ease of Access Centre (EAC). We can use then use the EAC as a pivot point.
+Sticky Keys – Press SHIFT 5 times
+Mouse Keys – SHIFT+ALT+NUMLOCK
+High Contrast – SHIFT+ALT+PRINTSCN
+Toggle Keys – Hold NUMLOCK for 5 seconds
+Filter Keys – Hold right SHIFT for 12 seconds
+
+Other standard shortcuts exist which may be useful. Some may be application specific:
+WINDOWS+F1 – Windows Search
+WINDOWS+D – Show Desktop
+WINDOWS+E – Launch Windows Explorer
+WINDOWS+R – Run
+WINDOWS+U – Ease of Access Centre
+WINDOWS+F – Search
+SHIFT+F10 – Context Menu
+CTRL+SHIFT+ESC – Task Manager
+CTRL+ALT+DEL – Splash screen on newer Windows versions
+F1 – Help
+F3 – Search
+F6 – Address Bar
+F11 – Toggle full screen within Internet Explorer
+CTRL+H – Internet Explorer History
+CTRL+T – Internet Explorer – New Tab
+CTRL+N – Internet Explorer – New Page
+CTRL+O – Open File
+CTRL+S – Save
+CTRL+N – New
+RDP / Citrix Shortcuts
+
+Citrix and Microsoft Remote Desktop Protocol (RDP) have their own set of shortcuts or “hotkeys” that correspond to Operating system functions or other unique actions.
+Remote Desktop Hotkeys:
+CTRL+ALT+END – Opens Windows Security dialog box
+CTRL+ALT+BREAK – Switches between windowed and full-screen
+ALT+INSERT – Cycles through windows
+ALT+HOME – Displays start menu
+ALT+DELETE – Displays control / context menu
+CTRL+ALT+NUMBER PAD MINUS – Takes screenshot of active window onto RDP clipboard
+CTRL+ALT+NUMBER PAD PLUS – Takes screenshot of entire RDP session onto RDP clipboard
+Citrix ICA Hotkeys:
+SHIFT+F1 – Displays Windows Task List
+SHIFT+F2 – Toggles title bar
+SHIFT+F3 – Closes remote application / Citrix connection
+CTRL+F1 – Displays Windows NT Security desktop
+CTRL+F2 – Displays remote task list or Start Menu
+CTRL+F3 – Displays task manager
+ALT+F2 – Cycles through maximised and minimised windows
+ALT+PLUS – Cycles through open windows
+ALT+MINUS – Cycles through open windows (reverse)
+Batch Files and Scripts
+
+Batch files such as .BAT and .CMD can be an alternative for executing system commands when an interactive shell isn’t permitted. Whilst .BAT files can be disabled, the lesser known .CMD equivalent can sometimes be allowed.
+Windows Script Hosts (WSH): 
+Providing access hasn’t been disabled and we can run either the “cscript.exe” or “wscript.exe” executables, we can use WSH to run a variety of different scripting languages, including VBScript, VBA and JScript by default.
+As an example, we can execute the following VBScript snippet by saving the contents within a .VBS file. Using this code, it may be possible to launch a CMD shell:
+set objApp = CreateObject(“WScript.Shell”)
+objApp.Run “CMD C:\”
+The VBS file can be run by double clicking on the file, or by passing the filename as an argument to either cscript.exe or wscript.exe.
+Any other languages that the system has support for can also be potentially abused, e.g. Python, Perl, PHP, etc. It is worth checking for these. Java, for example, is commonly installed on a lot of hosts. The javac.exe and java.exe executables can be used in a similar fashion to the example above.
+Juicy Files and Data
+
+It is always worth scouting for juicy data that could help you (very quickly) escalate your privileges. There’s always that one person who can’t resist storing every password they have within a plaintext file.
+Use any method in your arsenal to search for files:
+Windows Explorer
+Windows Search
+Command Line +
+“dir c:\ /s juicy.txt”
+“dir c:\ /s *password* == *cred* == *vnc* == *.config*”
+Enumerate applications that may store interesting data:
+VNC – ultravnc.ini, etc
+Apache – httpd.conf, .htaccess etc
+KeePass / similar applications
+Interesting Registry Entries:
+reg query “HKCU\Software\ORL\WinVNC3\Password”
+reg query “HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon”
+reg query “HKLM\SYSTEM\Current\ControlSet\Services\SNMP”
+reg query” HKCU\Software\SimonTatham\PuTTY\Sessions”
+Files to look out for:
+sysprep.inf
+sysprep.xml
+%WINDIR%\Panther\Unattend\Unattended.xml
+%WINDIR%\Panther\Unattended.xml
+%WINDIR%\debug\NetSetup.log
+%WINDIR%\repair\sam
+%WINDIR%\repair\system
+%WINDIR%\repair\software
+%WINDIR%\repair\security
+%WINDIR%\system32\config\AppEvent.Evt
+%WINDIR%\system32\config\SecEvent.Evt
+%WINDIR%\system32\config\default.sav
+%WINDIR%\system32\config\security.sav
+%WINDIR%\system32\config\software.sav
+%WINDIR%\system32\config\system.sav
+%USERPROFILE%\ntuser.dat
+Citrix ICAClient cached connections: 
+Cached connection information may be available in local application data stores. Look for the “ICAClient” directory, which is usually found within the %APPDATA% folder. Using “dir /s ICAClient” from a command line will also work.
+By copying another user’s ICAClient contents into your own folder, it may be possible to hijack their stored connections.
+Group Policy Preference saved passwords: 
+If the machine you’re testing is part of a domain, and you have access to the relevant SYSVOL network share that usually resides on the Domain Controller itself, then it is worth looking for the “cPassword” value stored within various XML files that may be hanging around. This can be performed by manually browsing SYSVOL and browsing for the relevant files:
+Groups.xml
+Services.xml
+ScheduledTasks.xml
+Printers.xml
+Drives.xml
+DataSources.xml
+The “cPassword” attribute is encrypted via AES, however this is using a static key which is available on the internet including directly from Microsoft via various MSDN articles.
+Binary Planting
+
+Binary planting involves intentionally placing malicious code in a location where it will be run by a vulnerable application or service. This usually requires a “perfect storm” of several weak configurations to be effective.
+Weak Windows Service Permissions: 
+A common vector is to target weak Windows services and file/folder permissions. As demonstrated earlier, the Sysinternals accesschk.exe tool comes in handy for this kind of enumeration.
+First, be sure to check specifically what user group you reside in. For a low privilege user, this is probably going to be the standard “Authenticated Users” group.
+Now we need to enumerate services that allow us to modify them:
+accesschk.exe -uwcqv “Authenticated Users” *
+If any services are returned, then we choose one as a target.
+Many services run as SYSTEM, so by having write access to such a service, we can effectively run any application we want with the highest privilege level possible.
+sc config SERVICENAME binpath= “C:\malicious.exe” -e
+C:\WINDOWS\System32\cmd.exe”
+sc config SERVICENAME obj= “.\LocalSystem” password =””
+net stop SERVICENAME
+net start SERVICENAME
+DLL Hijacking
+Applications usually can’t run by themselves, and instead rely on a pool of resources that they hook into. This is often in the form of code libraries such as DLLs. Generally, Windows applications follow a pre-set path on the hunt for a DLL and will check each location in order:
+1. The directory from which the application loaded
+2. 32-bit System directory (C:\Windows\System32)
+3. 16-bit System directory (C:\Windows\System)
+4. Windows directory (C:\Windows)
+5. The current working directory (CWD)
+6. Directories in the PATH environment variable (system then user)
+If we can place our malicious DLL earlier along the path, then the application will quite likely load our malicious code.
+Conclusion
+
+It’s probably obvious by now that these types of environments are very tricky to harden, and even trickier to harden properly.
+Where a full Desktop Environment is available to a user, this can be an especially challenging task. Operating Systems are designed by default to be feature-rich and as user friendly as possible. Unfortunately, these two attributes are not synonymous with security.
+We would recommend that any remote environment is configured in a pragmatic fashion, where the bare minimum of functionality is offered to users to enable them to carry out their tasks. This serves the purpose of reducing the overall attack surface that is available.
+All default configurations should be tweaked and hardened to minimise any possible routes that an attacker may use to “break out” or escalate their privileges.
+Verbose logging measures should also be in place, with events being reported to a central monitoring / reporting system. This can allow administrators to monitor any potential attacks that occur, often in real-time.
+External References, Tools and Further Reading:
+Citrix Security Compliance Links – http://www.citrix.com/support/security-compliance.html
+SANS Whitepaper – Server Security in a Citrix Presentation / Terminal Service Environment – http://www.citrix.com/content/dam/citrix/en_us/documents/support/citrix-xenapp-6-5-and-xendesktop-5-6-security-standards-and-deployment-scenarios.pdf
+Securing Citrix XenApp Server in the Enterprise – Tariq Azad
+windows-privesc-check – http://pentestmonkey.net/tools/windows-privesc-check
+Creating cmd.exe with mspaint http://nsimattstiles.wordpress.com/2013/03/19/gain-command-prompt-access-via-mspaint/
